@@ -11,10 +11,6 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 # Load environment variables from .env file
 dotenv.load_dotenv()
-# Set the OpenAI API key
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
-os.environ["ANTHROPIC_API_KEY"] = os.getenv("ANTHROPIC_API_KEY")
 
 def get_llm_model(provider, temperature=0):
     """Get LLM model based on provider name"""
@@ -22,7 +18,6 @@ def get_llm_model(provider, temperature=0):
         return ChatAnthropic(
             model="claude-3-7-sonnet-latest",
             temperature=temperature,
-            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
         )
     elif provider.lower() == "groq":
         return ChatGroq(

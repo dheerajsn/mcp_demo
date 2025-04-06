@@ -4,9 +4,6 @@ __pycache__/
 *.pyc
 node_modules/
 .venv/
-src/index.js
-src/book-data.js
 package.json
 package-lock.json
-src/server.js
-src/multiserver_mcp_client.py
+
