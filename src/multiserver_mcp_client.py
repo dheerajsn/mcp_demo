@@ -2,10 +2,6 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 from my_mcp_clent import get_llm_model, print_messages
 
-
-from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-4o")
-
 async def run(model):
     async with MultiServerMCPClient(
         {
