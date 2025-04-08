@@ -49,6 +49,7 @@ ormsgpack
 packaging
 parso
 pexpect
+pipdeptree
 platformdirs
 prompt_toolkit
 psutil
