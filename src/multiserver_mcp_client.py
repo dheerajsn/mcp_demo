@@ -29,10 +29,10 @@ async def run(model):
             }
         }
     ) as client:
-        print(client)
         agent = create_react_agent(get_llm_model(model), client.get_tools())
         math_response = await agent.ainvoke({"messages": "what's (3 + 5) x 12?"})
         all_notes_response = await agent.ainvoke({"messages": "List all notes"})
+        create_note_response = await agent.ainvoke({"messages": "Get Capitals of all US States, create note with title US State capitals and US state capital as contents of notes"})
 
         print("=== EXECUTION PATH ===")
         # Extract the messages from the response
@@ -41,9 +41,12 @@ async def run(model):
 
         messages = all_notes_response.get('messages', [])
         print_messages(messages)
+
+        messages = create_note_response.get('messages', [])
+        print_messages(messages)
     
-    print("Resource with Note ID 2:")
-    uri = "note://2"
+    print("Resource with Note ID 3:")
+    uri = "note://3"
     print(f"URI: {uri}")
     async with sse_client("http://localhost:3000/sse") as streams:
         async with ClientSession(*streams) as session:
