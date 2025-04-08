@@ -1,6 +1,7 @@
 # Create server parameters for stdio connection
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.client.sse import sse_client
 
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
@@ -73,42 +74,48 @@ def print_messages(messages):
         # Print the formatted message with any additional info
         print(f"{role}: {content}{usage_info}{tool_calls_info}\n")
 
-server_params = StdioServerParameters(
-    command="python",
-    # Make sure to update to the full absolute path to your math_server.py file
-    args=["src/math_server.py"],
-)
+async def invoke_with_mcp(session, llm, query):
+    await session.initialize()
 
-async def run(llm, query):
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            # Initialize the connection
-            await session.initialize()
+    # Get tools
+    tools = await load_mcp_tools(session)
+    
+    # Print available tools
+    print("\n=== AVAILABLE TOOLS ===")
+    for tool in tools:
+        print(f"• {tool.name}: {tool.description}")
+    
+    query = f"You are a smart ai assistant and I want you to tell me {query} Please understand the question properly, make use of tools only if needed, and provide the final answer in a single line."
+    print(f"\n=== QUERY ===\n{query}\n")
 
-            # Get tools
-            tools = await load_mcp_tools(session)
-            
-            # Print available tools
-            print("\n=== AVAILABLE TOOLS ===")
-            for tool in tools:
-                print(f"• {tool.name}: {tool.description}")
-            
-            query = f"You are a smart ai assistant and I want you to tell me {query} Please understand the question properly, make use of tools only if needed, and provide the final answer in a single line."
-            print(f"\n=== QUERY ===\n{query}\n")
+    # Create and run the agent
+    agent = create_react_agent(get_llm_model(llm), tools)
+    agent_response = await agent.ainvoke({"messages": query})
+    
+    # Print human-readable output
+    print("=== EXECUTION PATH ===")
+    
+    # Extract the messages from the response
+    messages = agent_response.get('messages', [])
+    
+    # Track tool usage
+    tool_calls = []
+    print_messages(messages)
 
-            # Create and run the agent
-            agent = create_react_agent(get_llm_model(llm), tools)
-            agent_response = await agent.ainvoke({"messages": query})
-            
-            # Print human-readable output
-            print("=== EXECUTION PATH ===")
-            
-            # Extract the messages from the response
-            messages = agent_response.get('messages', [])
-            
-            # Track tool usage
-            tool_calls = []
-            print_messages(messages)
+async def run(transport, llm, query):
+    if transport == "stdio":
+        stdio_server_params = StdioServerParameters(
+            command="python",
+            # Make sure to update to the full absolute path to your math_server.py file
+            args=["src/math_server.py", "--transport", "stdio"],
+        )
+        async with stdio_client(stdio_server_params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await invoke_with_mcp(session, llm, query)
+    else:
+        async with sse_client("http://localhost:8000/sse") as (read, write):
+            async with ClientSession(read, write) as session:
+                await invoke_with_mcp(session, llm, query)
 
 if __name__ == "__main__":
     import asyncio
@@ -116,14 +123,14 @@ if __name__ == "__main__":
     async def main():
         # Run both providers in sequence within the same event loop
         print("\n=== Anthropic ===")
-        await run("anthropic", "What is (1 * 2) divide by 10?")
+        await run("stdio", "anthropic", "What is (1 * 2) divide by 10?")
         print("\n=== ChatGroq ===")
-        await run("groq", "What is (1 * 2) divide by 10?")
+        await run("sse", "groq", "What is (1 * 2) divide by 10?")
         
         print("\n=== Anthropic ===")
-        await run("anthropic", "What is the capital of USA?")
+        await run("sse", "anthropic", "What is the capital of USA?")
         print("\n=== ChatGroq ===")
-        await run("groq", "What is the capital of USA?")
+        await run("sse", "groq", "What is the capital of USA?")
     
     # Use a single event loop for all async operations
     asyncio.run(main())

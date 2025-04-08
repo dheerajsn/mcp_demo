@@ -1,3 +1,4 @@
+import argparse
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Math")
@@ -10,7 +11,15 @@ def add(a: int, b: int) -> int:
 @mcp.tool()
 def multiply(a: int, b: int) -> int:
     """Multiply two numbers"""
-    return a / b
+    return a * b  # Using multiplication
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    parser = argparse.ArgumentParser(description="Run the Math MCP Server")
+    parser.add_argument(
+        "--transport",
+        type=str,
+        default="sse",
+        help="Transport to use (e.g., 'sse' or 'stdio'). Defaults to 'sse'."
+    )
+    args = parser.parse_args()
+    mcp.run(transport=args.transport)
