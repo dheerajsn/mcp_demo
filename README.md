@@ -8,7 +8,7 @@ This project showcases how to use the Model Context Protocol (MCP) to create too
 
 - **Math Operations Service**: A Python-based Stdio MCP server implemented in `src/math_server.py`.
 - **Notes Service**: A Node.js-based service using Server-Sent Events (SSE) for notes retrieval.
-- **MCP Client**: A Python client (`src/mcp_clent.py`) that connects to the Stdio & SSE MCP server and provides tools, resources to the LLM.
+- **MCP Client**: A Python client (`src/my_mcp_clent.py`) that connects to the Stdio & SSE MCP server and provides tools, resources to the LLM.
 
 ## Requirements
 
@@ -91,10 +91,10 @@ python src/math_server.py
 
 ### Running the MCP Client
 
-The MCP client (`src/mcp_clent.py`) connects to the Stdio & SSE MCP (src/math_server.py) server and provides tools, resources for math operations. To run the client:
+The MCP client (`src/my_mcp_clent.py`) connects to the Stdio & SSE MCP (src/math_server.py) server and provides tools, resources for math operations. To run the client:
 
 ```bash
-python src/mcp_clent.py
+python src/my_mcp_clent.py
 ```
 
 ### Running the Multi-Server MCP Client
