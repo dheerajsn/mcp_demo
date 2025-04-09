@@ -1,0 +1,1 @@
+FAISS DB files can be saved in this directory

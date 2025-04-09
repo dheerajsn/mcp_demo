@@ -10,6 +10,12 @@ import os
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from langchain_core.documents import Document
+from faiss_vector_db import create_vector_db
+from langchain.chains import RetrievalQA
+
+import json
+
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
@@ -85,7 +91,11 @@ async def invoke_with_mcp(session, llm, query):
     for tool in tools:
         print(f"• {tool.name}: {tool.description}")
     
-    query = f"You are a smart ai assistant and I want you to tell me {query} Please understand the question properly, make use of tools only if needed, and provide the final answer in a single line."
+    query = (
+        f"You are a smart AI assistant, and I want you to tell me {query}. "
+        "Please understand the question properly, make use of tools only if needed, "
+        "and provide the final answer in a single line."
+    )
     print(f"\n=== QUERY ===\n{query}\n")
 
     # Create and run the agent
@@ -117,11 +127,74 @@ async def run(transport, llm, query):
             async with ClientSession(read, write) as session:
                 await invoke_with_mcp(session, llm, query)
 
+async def run_sse_with_resources(query):
+    query = (
+        f"You are a smart AI assistant, and I want you to tell me {query}. "
+        "Please understand the question properly, make use of tools only if needed, "
+        "Only make use of resources and documents which are provided to you, "
+        "and provide the final answer in a single line."
+    )
+
+    async with sse_client("http://localhost:8000/sse") as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            # Get resources
+            resources = await session.list_resources()
+            print("\n=== AVAILABLE RESOURCES ===")
+            for desc, items in resources:
+                if desc == "resources" and items:
+                    root_resource = await session.read_resource(items[0].name)
+                    break
+            resource_file_info = json.loads(root_resource.contents[0].text)
+            resource_file_names = [r.get('name')  for r in resource_file_info]
+
+            templates = await session.list_resource_templates()
+            uri_template = templates.resourceTemplates[0].uriTemplate
+            docs = []
+            for file_name in resource_file_names:
+                resources = await session.read_resource(uri_template.format(name=file_name))
+                for resource, items in resources:
+                    if items:
+                        page_content = items[0].text
+                        docs.append(Document(
+                                page_content=page_content,
+                                metadata={
+                                    "source": file_name,
+                                    "type": "document"
+                                }
+                            ))        
+
+            # Create vector database
+            db = create_vector_db(docs)
+
+            qa_chain = RetrievalQA.from_chain_type(
+            llm=get_llm_model("anthropic"),
+            chain_type="stuff",  # Simple method to stuff all documents into the prompt
+            retriever=db.as_retriever(search_kwargs={"k": 3}),
+            return_source_documents=True
+            )
+            result = qa_chain({"query": query})
+            print("\n====== Anthropic =======")
+            print(query)
+            print(result["result"], [doc.metadata["source"] for doc in result["source_documents"]])
+  
+
+            #for resource in resources:
+                #print(f"• {resource.name}: {await session.read_resource(resource.name).contents}")
+                    
+                
+            
+            # Invoke the query
+            #await invoke_with_mcp(session, "anthropic", query)
+
 if __name__ == "__main__":
     import asyncio
     
     async def main():
         # Run both providers in sequence within the same event loop
+        print("\n Invoke Anthropic with resources")
+        await run_sse_with_resources("Give me area of forangle with base 5 and height 10")
+
         print("\n=== Anthropic ===")
         await run("stdio", "anthropic", "What is (1 * 2) divide by 10?")
         print("\n=== ChatGroq ===")
@@ -131,6 +204,8 @@ if __name__ == "__main__":
         await run("sse", "anthropic", "What is the capital of USA?")
         print("\n=== ChatGroq ===")
         await run("sse", "groq", "What is the capital of USA?")
-    
+
+       
+
     # Use a single event loop for all async operations
     asyncio.run(main())

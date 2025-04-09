@@ -14,6 +14,7 @@ from mcp.types import (
 )
 from pydantic import AnyUrl
 
+
 async def run(model):
     async with MultiServerMCPClient(
         {
@@ -55,6 +56,8 @@ async def run(model):
             text_content = resource.contents[0]
             if isinstance(text_content, TextResourceContents):
                 print(f"Note content: {text_content.text}")
+            
+            session.ai
 
 if __name__ == "__main__":
     import asyncio
