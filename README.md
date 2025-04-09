@@ -6,7 +6,7 @@ A demonstration of the Model Context Protocol (MCP) with multiple services, incl
 
 This project showcases how to use the Model Context Protocol (MCP) to create tools & resources that can be utilized by large language models (LLMs). It includes:
 
-- **Math Operations Service**: A Python-based Stdio MCP server implemented in `src/server/mcp_math_server.py`.
+- **Math Operations Service**: A Python-based Stdio & SSE MCP server implemented in `src/server/mcp_math_server.py`.
 - **Notes Service**: A Node.js-based service using Server-Sent Events (SSE) for notes retrieval. Server is implemented in `src/index.js`
 - **MCP Client**: A Python client (`src/client/mcp_client.py`) that connects to mcp_math_server queries llm and utlizes server tools and resources.
 
