@@ -18,6 +18,33 @@ This project showcases how to use the Model Context Protocol (MCP) to create too
 
 ## Installation
 
+## Python Virtual Environment
+
+First, create and activate a Python virtual environment:
+
+```bash
+# Create a virtual environment
+# On macOS/Linux:
+python -m venv .venv
+
+# On Windows:
+python -m venv .venv
+# or if you have multiple Python versions:
+py -3 -m venv .venv
+```
+
+Activate the virtual environment:
+```bash
+# On macOS/Linux:
+source .venv/bin/activate
+
+# On Windows (Command Prompt):
+.venv\Scripts\activate.bat
+
+# On Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+```
+
 ### Python Dependencies
 
 Install the required Python packages:
