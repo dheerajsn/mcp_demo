@@ -63,14 +63,6 @@ npm install
 
 ## Usage
 
-### Running the MCP Client
-
-The MCP client (`src/mcp_clent.py`) connects to the Stdio & SSE MCP (src/math_server.py) server and provides tools, resources for math operations. To run the client:
-
-```bash
-python src/mcp_clent.py
-```
-
 ### Running the Node.js MCP Notes Server (SSEServerTransport)
 
 For the Node.js-based service (e.g.,notes service), follow these steps:
@@ -89,6 +81,21 @@ For the Node.js-based service (e.g.,notes service), follow these steps:
    ```bash
    npm run inspect
    ```
+
+### Running SSE (src/math_server.py) server.
+
+We need to first run below script which starts MCP server with Sse Transport.
+```bash
+python src/math_server.py
+```
+
+### Running the MCP Client
+
+The MCP client (`src/mcp_clent.py`) connects to the Stdio & SSE MCP (src/math_server.py) server and provides tools, resources for math operations. To run the client:
+
+```bash
+python src/mcp_clent.py
+```
 
 ### Running the Multi-Server MCP Client
 
